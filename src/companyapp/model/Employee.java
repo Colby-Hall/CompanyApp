@@ -25,15 +25,18 @@ public class Employee {
 	}
 
 	public void removeVacDays(LocalDate begin, LocalDate end) {
-		vacDays -= ChronoUnit.DAYS.between(begin, end);
+		if (ChronoUnit.DAYS.between(begin, end) == 0) {
+			vacDays -= 1;
+		} else {
+			vacDays -= ChronoUnit.DAYS.between(begin, end);
+		}
 	}
 
-	public Boolean checkVac(LocalDate begin, LocalDate end){
+	public Boolean checkVac(LocalDate begin, LocalDate end) {
 		long days = ChronoUnit.DAYS.between(begin, end);
 		if (days + 1 <= vacDays) {
 			return true;
-		}
-		else {
+		} else {
 			return false;
 		}
 	}
@@ -51,10 +54,10 @@ public class Employee {
 	}
 
 	public Boolean checkExpense(String cash) {
-		for (int i = 0; i < cash.length(); i++){
+		for (int i = 0; i < cash.length(); i++) {
 			if (Character.isAlphabetic(cash.charAt(i))) {
 				return false;
-				}
+			}
 		}
 		return true;
 	}
@@ -79,4 +82,3 @@ public class Employee {
 		return this.password;
 	}
 }
-

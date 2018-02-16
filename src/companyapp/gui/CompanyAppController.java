@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import companyapp.model.*;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -65,7 +66,6 @@ public class CompanyAppController {
 	@FXML
 	private Button submitExpense;
 
-
 	@FXML
 	public void initialize() {
 		currentUser.setItems(name);
@@ -75,7 +75,15 @@ public class CompanyAppController {
 		expenseAmount.setEditable(false);
 		submitDays.setDisable(true);
 		submitExpense.setDisable(true);
+	}
 
+	// http://code.makery.ch/blog/javafx-dialogs-official/
+	// Error box reference
+
+	public void makeAlert(String errorText) {
+		Alert alert = new Alert(AlertType.ERROR);
+		alert.setContentText(errorText);
+		alert.showAndWait();
 	}
 
 	Employer business = new Employer("Acme");
@@ -84,34 +92,34 @@ public class CompanyAppController {
 		String enteredName = username.getText();
 		String enteredPassword = password.getText();
 		Employee loginEmployee = new Employee(enteredName);
+		if (enteredName.length() != 0) {
+			if (enteredPassword.equals(loginEmployee.getPassword())) {
 
-		if (enteredPassword.equals(loginEmployee.getPassword())) {
+				if (!business.getEmployee(loginEmployee)) {
+					business.addEmployee(loginEmployee);
+					business.setCurrent(loginEmployee);
+				}
 
-			if (!business.getEmployee(loginEmployee)) {
-				business.addEmployee(loginEmployee);
-				business.setCurrent(loginEmployee);
+				else {
+					business.setCurrent(loginEmployee);
+				}
+				name.clear();
+				name.add(business.getCurrent().getName());
+				username.clear();
+				password.clear();
+				expenseType.setEditable(true);
+				expenseAmount.setEditable(true);
+				submitDays.setDisable(false);
+				submitExpense.setDisable(false);
+				vacPeriod.clear();
+				showExpenses.clear();
+			} else {
+
+				makeAlert("Invalid Login");
+
 			}
-
-			else {
-				business.setCurrent(loginEmployee);
-			}
-			name.clear();
-			name.add(business.getCurrent().getName());
-			username.clear();
-			password.clear();
-			expenseType.setEditable(true);
-			expenseAmount.setEditable(true);
-			submitDays.setDisable(false);
-			submitExpense.setDisable(false);
-
 		} else {
-			// http://code.makery.ch/blog/javafx-dialogs-official/
-			// Error box reference
-
-			Alert alert = new Alert(AlertType.ERROR);
-			alert.setContentText("Invalid Login Info");
-			alert.showAndWait();
-
+			makeAlert("Invalid Login");
 		}
 	}
 
@@ -119,40 +127,49 @@ public class CompanyAppController {
 	// DatePicker conversion taken from here
 
 	public void calcVacation() {
+		if (startDate.getValue() != null && endDate.getValue() != null) {
 
-		LocalDate begin = startDate.getValue();
-		LocalDate end = endDate.getValue();
+			LocalDate begin = startDate.getValue();
+			LocalDate end = endDate.getValue();
 
+			if (begin.compareTo(end) < 0) {
 
+				String beginString = startDate.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+				String endString = endDate.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-		String beginString = startDate.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-		String endString = endDate.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-		if (business.getCurrent().checkVac(begin, end)) {
-			business.getCurrent().removeVacDays(begin, end);
-			business.getCurrent().addVacation(beginString, endString);
-			vacPeriod.clear();
-			vacPeriod.addAll(business.getCurrent().getVacation());
+				if (business.getCurrent().checkVac(begin, end)) {
+					business.getCurrent().removeVacDays(begin, end);
+					business.getCurrent().addVacation(beginString, endString);
+					vacPeriod.clear();
+					vacPeriod.addAll(business.getCurrent().getVacation());
+				} else {
+					makeAlert("Invalid Date Selection");
+				}
+			} else {
+				makeAlert("Invalid Date Selection");
+			}
 		} else {
-			Alert alert = new Alert(AlertType.ERROR);
-			alert.setContentText("Invalid Date Selection");
-			alert.showAndWait();
+			makeAlert("Enter two dates");
 		}
+
 	}
 
 	public void incExpense() {
 		String name = expenseType.getText();
 		String money = expenseAmount.getText();
-		if (business.getCurrent().checkExpense(money)) {
-			double expense = Double.parseDouble(expenseAmount.getText());
-			business.getCurrent().addExpense(name, expense);
-			showExpenses.clear();
-			showExpenses.addAll(business.getCurrent().getAllExpenses());
-		} else {
-			Alert alert = new Alert(AlertType.ERROR);
-			alert.setContentText("Invalid Expense Format");
-			alert.showAndWait();
-		}
 
+		if (name.length() != 0 && money.length() != 0) {
+			if (business.getCurrent().checkExpense(money)) {
+				double expense = Double.parseDouble(expenseAmount.getText());
+				business.getCurrent().addExpense(name, expense);
+				showExpenses.clear();
+				showExpenses.addAll(business.getCurrent().getAllExpenses());
+			} else {
+				makeAlert("Invalid Expense Format");
+			}
+
+		} else {
+			makeAlert("Complete All Fields");
+		}
 	}
 }

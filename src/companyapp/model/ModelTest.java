@@ -2,6 +2,8 @@ package companyapp.model;
 
 import static org.junit.Assert.*;
 import java.time.*;
+import java.util.ArrayList;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -44,13 +46,24 @@ public class ModelTest {
 
 	@Test
 	public void testRemoveVacDays() {
-		fail("Not yet implemented");
-
+		Employee testEmployee = new Employee("Joe Smith");
+		LocalDate testBegin = LocalDate.of(2018, 2, 15);
+		LocalDate testEnd = LocalDate.of(2018, 2, 17);
+		testEmployee.removeVacDays(testBegin, testEnd);
+		assertEquals(5, testEmployee.getVacDays());
 	}
 
 	@Test
 	public void testCheckVac() {
-		fail("Not yet implemented");
+		Employee testEmployee = new Employee("Joe Smith");
+		LocalDate testBegin = LocalDate.of(2018, 2, 15);
+		LocalDate testEnd = LocalDate.of(2018, 2, 17);
+		LocalDate testEndBad = LocalDate.of(2018, 4, 17);
+		assertEquals(true, testEmployee.checkVac(testBegin, testEnd));
+		assertEquals(false, testEmployee.checkVac(testBegin, testEndBad));
+
+
+
 	}
 
 	@Test
@@ -62,12 +75,21 @@ public class ModelTest {
 
 	@Test
 	public void testAddVacation() {
-		fail("Not yet implemented");
+		Employee testEmployee = new Employee("Joe Smith");
+		testEmployee.addVacation("one", "two");
+		ArrayList<String> vacList = testEmployee.getVacation();
+		assertEquals(vacList.get(0), "one - two");
+
+
 	}
 
 	@Test
 	public void testGetVacation() {
-		fail("Not yet implemented");
+		Employee testEmployee = new Employee("Joe Smith");
+		testEmployee.addVacation("one", "two");
+		ArrayList<String> vacList = testEmployee.getVacation();
+		assertEquals(vacList.get(0), "one - two");
+
 	}
 
 	@Test
@@ -92,11 +114,15 @@ public class ModelTest {
 	public void testGetExpense() {
 		Employee testEmployee = new Employee("Joe Smith");
 		testEmployee.addExpense("food", 10);
-		assertEquals(10, testEmployee.getExpense("food"), 0);
+		assertEquals(10, testEmployee.getExpense("food"), 10);
 	}
 
 	@Test
 	public void testGetAllExpenses() {
+		Employee testEmployee = new Employee("Joe Smith");
+		testEmployee.addExpense("food", 10);
+		Map<String, Double> testMap = testEmployee.getAllExpenses();
+		assertEquals(Double.valueOf(10), testMap.get("food"));
 
 	}
 
