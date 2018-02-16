@@ -11,7 +11,6 @@ public class Employer {
 	public Employer(String name) {
 		this.name = name;
 		this.employees = new ArrayList<Employee>();
-		this.currentEmployee = null;
 	}
 
 	public String getName() {

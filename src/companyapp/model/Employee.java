@@ -1,19 +1,22 @@
 package companyapp.model;
+
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
 
-@SuppressWarnings("unused")
 public class Employee {
 
 	private String name;
 	private Map<String, Double> expenses = new HashMap<String, Double>();
-	private int vacDays;
+	private ArrayList<String> vacation = new ArrayList<String>();
+	private long vacDays;
 	private String password;
 
 	public Employee(String name) {
-		this.name     = name;
-		this.vacDays  = 22;
+		this.name = name;
+		this.vacDays = 7;
 		this.password = "password";
 	}
 
@@ -21,42 +24,59 @@ public class Employee {
 		return name;
 	}
 
-	public void removeVacDays(int amount) {
-		if (vacDays > amount) {
-			vacDays -= amount;
+	public void removeVacDays(LocalDate begin, LocalDate end) {
+		vacDays -= ChronoUnit.DAYS.between(begin, end);
+	}
+
+	public Boolean checkVac(LocalDate begin, LocalDate end){
+		long days = ChronoUnit.DAYS.between(begin, end);
+		if (days + 1 <= vacDays) {
+			return true;
 		}
 		else {
-			vacDays = 0;
+			return false;
 		}
 	}
 
-	public int getVacDays(){
+	public long getVacDays() {
 		return vacDays;
 	}
 
-	public void addExpense(String purchaseName, double value) {
-		expenses.put(purchaseName, value);
+	public void addVacation(String vacStart, String vacEnd) {
+		vacation.add(vacStart + " - " + vacEnd);
 	}
 
-	public double getExpenses(String purchaseName, double cost) {
+	public ArrayList<String> getVacation() {
+		return vacation;
+	}
+
+	public Boolean checkExpense(String cash) {
+		for (int i = 0; i < cash.length(); i++){
+			if (Character.isAlphabetic(cash.charAt(i))) {
+				return false;
+				}
+		}
+		return true;
+	}
+
+	public void addExpense(String purchaseName, double value) {
+		if (expenses.containsKey(purchaseName)) {
+			expenses.put(purchaseName, value + expenses.get(purchaseName));
+		} else {
+			expenses.put(purchaseName, value);
+		}
+	}
+
+	public double getExpense(String purchaseName) {
 		return expenses.get(purchaseName);
 	}
 
+	public Map<String, Double> getAllExpenses() {
+		return expenses;
+	}
+
 	public String getPassword() {
-		return password;
+		return this.password;
 	}
-/*
-	public void changePassword(){
-		Scanner input = new Scanner(System.in);
-		System.out.println("enter an integer");
-		String passwordAttempt = input.next();
-
-		if (passwordAttempt == this.password) {
-			String newPassword = input.next();
-			this.password = newPassword;
-			input.close();
-
-		}
-	}
-*/
 }
+

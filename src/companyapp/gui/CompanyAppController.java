@@ -2,11 +2,17 @@ package companyapp.gui;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 import companyapp.model.*;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.ListView;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
@@ -20,6 +26,26 @@ public class CompanyAppController {
 
 	@FXML
 	private Button submitLogin;
+
+	// https://gjf2a.blogspot.com/2015/01/javafx-observablelist.html
+	// All ObservableList and ListView code taken from this post
+	@FXML
+	private ListView<String> currentUser;
+
+	@FXML
+	private ObservableList<String> name = FXCollections.observableArrayList();
+
+	@FXML
+	private ListView<String> vacations;
+
+	@FXML
+	private ObservableList<String> vacPeriod = FXCollections.observableArrayList();
+
+	@FXML
+	private ListView<Map> expenseList;
+
+	@FXML
+	private ObservableList<Map> showExpenses = FXCollections.observableArrayList();
 
 	@FXML
 	private DatePicker startDate;
@@ -39,73 +65,94 @@ public class CompanyAppController {
 	@FXML
 	private Button submitExpense;
 
-	@FXML
-	private TextField test1;
-	// tests expenses being added
-	// lets people during demo know something is actually happening
 
 	@FXML
-	private TextField test2;
-	// tests vacation being added
-	// lets people during demo know something is actually happening
-
-
-	@FXML
-	private TextField test3;
-	// test employees being created
-	// lets people during demo know something is actually happening
-
-
-	@FXML
-	public void initialize(){
+	public void initialize() {
+		currentUser.setItems(name);
+		vacations.setItems(vacPeriod);
+		expenseList.setItems(showExpenses);
 		expenseType.setEditable(false);
 		expenseAmount.setEditable(false);
-
+		submitDays.setDisable(true);
+		submitExpense.setDisable(true);
 
 	}
 
 	Employer business = new Employer("Acme");
 
 	public void login() {
-		String user = username.getText();
-		Employee loginEmployee = new Employee(user);
+		String enteredName = username.getText();
+		String enteredPassword = password.getText();
+		Employee loginEmployee = new Employee(enteredName);
 
-		if (!business.getEmployee(loginEmployee)){
-		business.addEmployee(loginEmployee);
-		business.setCurrent(loginEmployee);
+		if (enteredPassword.equals(loginEmployee.getPassword())) {
+
+			if (!business.getEmployee(loginEmployee)) {
+				business.addEmployee(loginEmployee);
+				business.setCurrent(loginEmployee);
+			}
+
+			else {
+				business.setCurrent(loginEmployee);
+			}
+			name.clear();
+			name.add(business.getCurrent().getName());
+			username.clear();
+			password.clear();
+			expenseType.setEditable(true);
+			expenseAmount.setEditable(true);
+			submitDays.setDisable(false);
+			submitExpense.setDisable(false);
+
+		} else {
+			// http://code.makery.ch/blog/javafx-dialogs-official/
+			// Error box reference
+
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setContentText("Invalid Login Info");
+			alert.showAndWait();
+
 		}
-		else {
-			business.setCurrent(loginEmployee);
-		}
-		expenseType.setEditable(true);
-		expenseAmount.setEditable(true);
-
-
-		test3.setText(business.getCurrent().getName());
-
 	}
 
 	// https://stackoverflow.com/questions/33789307/converting-datepicker-to-string-in-java
 	// DatePicker conversion taken from here
 
 	public void calcVacation() {
-		String begin = startDate.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-		String end   = endDate.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-		//LocalDate begin = startDate.getValue();
-		//LocalDate end   = endDate.getValue();
+		LocalDate begin = startDate.getValue();
+		LocalDate end = endDate.getValue();
 
-		int numBegin = Integer.parseInt((begin.substring(begin.length() - 2)));
-		int numEnd   = Integer.parseInt((end.substring(begin.length() - 2)));
-		business.getCurrent().removeVacDays(numEnd - numBegin  + 1);
-		test2.setText("Vacation: " + Integer.toString(numEnd - numBegin) + " days.");
+
+
+		String beginString = startDate.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		String endString = endDate.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+		if (business.getCurrent().checkVac(begin, end)) {
+			business.getCurrent().removeVacDays(begin, end);
+			business.getCurrent().addVacation(beginString, endString);
+			vacPeriod.clear();
+			vacPeriod.addAll(business.getCurrent().getVacation());
+		} else {
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setContentText("Invalid Date Selection");
+			alert.showAndWait();
+		}
 	}
 
 	public void incExpense() {
 		String name = expenseType.getText();
-		double money   = Double.parseDouble(expenseAmount.getText());
-		business.getCurrent().addExpense(name, money);
-		test1.setText(name + " : " + expenseAmount.getText());
+		String money = expenseAmount.getText();
+		if (business.getCurrent().checkExpense(money)) {
+			double expense = Double.parseDouble(expenseAmount.getText());
+			business.getCurrent().addExpense(name, expense);
+			showExpenses.clear();
+			showExpenses.addAll(business.getCurrent().getAllExpenses());
+		} else {
+			Alert alert = new Alert(AlertType.ERROR);
+			alert.setContentText("Invalid Expense Format");
+			alert.showAndWait();
+		}
 
 	}
 }
